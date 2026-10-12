@@ -131,8 +131,6 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
 .modal-actions button{flex:1;padding:10px;border:none;border-radius:10px;font-family:'Poppins',sans-serif;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px}
 .btn-download{background:#e8f5e9;color:#2e7d32}
 .btn-delete{background:#ffebee;color:#c62828}
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(100px);background:#333;color:#fff;padding:12px 24px;border-radius:25px;font-size:14px;z-index:400;transition:.3s;white-space:nowrap}
-.toast.show{transform:translateX(-50%) translateY(0)}
 .loading-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,.9);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:500}
 .loading-overlay.active{display:flex}
 .spinner{width:50px;height:50px;border:4px solid #e0e0e0;border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:15px}
@@ -249,10 +247,10 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
     <!-- ISSUED DOCUMENTS -->
     <div id="issued" class="content-section">
         <div class="section-header"><button class="back-btn" onclick="showScreen('dashboard')"><i class="fas fa-arrow-left"></i></button><h2>Issued Documents</h2></div>
-        <div class="issued-card"><div class="issued-icon"><i class="fas fa-id-card"></i></div><div class="issued-info"><h4>Aadhaar Card</h4><p>UIDAI</p><span class="issued-status">Available</span></div><button class="fetch-btn" onclick="showToast('Demo feature')">Fetch</button></div>
-        <div class="issued-card"><div class="issued-icon"><i class="fas fa-car"></i></div><div class="issued-info"><h4>Driving License</h4><p>MoRTH</p><span class="issued-status">Available</span></div><button class="fetch-btn" onclick="showToast('Demo feature')">Fetch</button></div>
-        <div class="issued-card"><div class="issued-icon"><i class="fas fa-graduation-cap"></i></div><div class="issued-info"><h4>Class X Marksheet</h4><p>CBSE</p><span class="issued-status">Available</span></div><button class="fetch-btn" onclick="showToast('Demo feature')">Fetch</button></div>
-        <div class="issued-card"><div class="issued-icon"><i class="fas fa-vote-yea"></i></div><div class="issued-info"><h4>Voter ID</h4><p>ECI</p><span class="issued-status">Available</span></div><button class="fetch-btn" onclick="showToast('Demo feature')">Fetch</button></div>
+        <div class="issued-card"><div class="issued-icon"><i class="fas fa-id-card"></i></div><div class="issued-info"><h4>Aadhaar Card</h4><p>UIDAI</p><span class="issued-status">Available</span></div><button class="fetch-btn" onclick="alert('Demo feature')">Fetch</button></div>
+        <div class="issued-card"><div class="issued-icon"><i class="fas fa-car"></i></div><div class="issued-info"><h4>Driving License</h4><p>MoRTH</p><span class="issued-status">Available</span></div><button class="fetch-btn" onclick="alert('Demo feature')">Fetch</button></div>
+        <div class="issued-card"><div class="issued-icon"><i class="fas fa-graduation-cap"></i></div><div class="issued-info"><h4>Class X Marksheet</h4><p>CBSE</p><span class="issued-status">Available</span></div><button class="fetch-btn" onclick="alert('Demo feature')">Fetch</button></div>
+        <div class="issued-card"><div class="issued-icon"><i class="fas fa-vote-yea"></i></div><div class="issued-info"><h4>Voter ID</h4><p>ECI</p><span class="issued-status">Available</span></div><button class="fetch-btn" onclick="alert('Demo feature')">Fetch</button></div>
     </div>
 
     <!-- SHARED -->
@@ -305,7 +303,6 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
 </div>
 
 <div id="loading" class="loading-overlay"><div class="spinner"></div><p>Please wait...</p></div>
-<div id="toast" class="toast"></div>
 
 <!-- FIREBASE SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -313,12 +310,7 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
+// YOUR ACTUAL FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyAAw12UDlbC4WkBrglXz86aZklFkYxa1fQ",
   authDomain: "digilocker-a490d.firebaseapp.com",
@@ -329,7 +321,12 @@ const firebaseConfig = {
 };
 
 // INITIALIZE FIREBASE
-firebase.initializeApp(firebaseConfig);
+try {
+    firebase.initializeApp(firebaseConfig);
+} catch(err) {
+    alert("Firebase Error: " + err.message);
+}
+
 const auth = firebase.auth();
 const db = firebase.firestore();
 
@@ -340,7 +337,7 @@ let selectedFileBase64 = null;
 let selectedFileType = null;
 let currentViewDoc = null;
 
-// AUTH STATE LISTENER
+// AUTHENTICATION STATE LISTENER
 auth.onAuthStateChanged(async (user) => {
     if (user) {
         currentUser = user;
@@ -362,12 +359,19 @@ function toggleAuth() {
 async function login() {
     const email = document.getElementById('loginEmail').value.trim();
     const pass = document.getElementById('loginPass').value;
-    if (!email || !pass) return showToast('Please fill all fields');
+    
+    if (!email || !pass) {
+        alert("Please enter both Email and Password!");
+        return;
+    }
+    
     showLoading();
     try {
         await auth.signInWithEmailAndPassword(email, pass);
-        showToast('Welcome back! ✅');
-    } catch (e) { showToast(e.message); }
+        alert("Login Successful! ✅");
+    } catch (e) { 
+        alert("LOGIN ERROR: " + e.message); 
+    }
     hideLoading();
 }
 
@@ -376,8 +380,16 @@ async function signup() {
     const email = document.getElementById('signupEmail').value.trim();
     const pass = document.getElementById('signupPass').value;
     const aadhaar = document.getElementById('signupAadhaar').value.trim();
-    if (!name || !email || !pass) return showToast('Please fill required fields');
-    if (pass.length < 6) return showToast('Password must be at least 6 characters');
+    
+    if (!name || !email || !pass) {
+        alert("Please fill in Name, Email, and Password!");
+        return;
+    }
+    if (pass.length < 6) {
+        alert("Password must be at least 6 characters long!");
+        return;
+    }
+    
     showLoading();
     try {
         const res = await auth.createUserWithEmailAndPassword(email, pass);
@@ -387,12 +399,14 @@ async function signup() {
             aadhaar: aadhaar || '',
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        showToast('Account created! ✅');
-    } catch (e) { showToast(e.message); }
+        alert("Account Created Successfully! ✅");
+    } catch (e) { 
+        alert("SIGNUP ERROR: " + e.message); 
+    }
     hideLoading();
 }
 
-function logout() { auth.signOut(); showToast('Logged out'); }
+function logout() { auth.signOut(); alert('Logged out'); }
 
 // LOAD PROFILE
 async function loadProfile() {
@@ -430,14 +444,12 @@ function setActiveNav(el) {
 function toggleProfileMenu() { document.getElementById('profileMenu').classList.toggle('active'); }
 document.addEventListener('click', e => { if (!e.target.closest('.nav-right')) document.getElementById('profileMenu').classList.remove('active'); });
 
-// FILE CONVERSION TO BASE64
+// FILE CONVERSION
 function handleFileSelect(e) {
     const f = e.target.files[0];
     if (!f) return;
-    
-    // Safety size check (800KB) so the image fits in Firestore's 1MB document limit
     if (f.size > 800 * 1024) { 
-        showToast('File too large! Choose an image under 800KB.'); 
+        alert('File too large! Choose an image under 800KB.'); 
         e.target.value = '';
         return; 
     }
@@ -467,15 +479,15 @@ function removeFile(e) {
     document.getElementById('uploadPlaceholder').innerHTML = '<i class="fas fa-cloud-upload-alt fa-3x"></i><p>Tap to select file or photo</p><span>JPG, PNG, PDF (Max 800KB)</span>';
 }
 
-// SAVE DOCUMENT TO FIRESTORE
+// UPLOAD DOCUMENT
 async function uploadDocument() {
     const name = document.getElementById('docName').value.trim();
     const cat = document.getElementById('docCategory').value;
     const num = document.getElementById('docNumber').value.trim();
 
-    if (!name) return showToast('Please enter document name');
-    if (!cat) return showToast('Please select a category');
-    if (!selectedFileBase64) return showToast('Please select a file');
+    if (!name) return alert('Please enter document name');
+    if (!cat) return alert('Please select a category');
+    if (!selectedFileBase64) return alert('Please select a file');
 
     showLoading();
     try {
@@ -489,9 +501,8 @@ async function uploadDocument() {
             uploadedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        showToast('Document Uploaded Successfully! ✅');
+        alert('Document Uploaded Successfully! ✅');
         
-        // Reset form
         document.getElementById('docName').value = '';
         document.getElementById('docCategory').value = '';
         document.getElementById('docNumber').value = '';
@@ -499,11 +510,11 @@ async function uploadDocument() {
         
         await loadDocuments(); 
         showScreen('documents');
-    } catch (e) { showToast('Upload failed: ' + e.message); }
+    } catch (e) { alert('Upload failed: ' + e.message); }
     hideLoading();
 }
 
-// FETCH DOCUMENTS FROM FIRESTORE
+// FETCH DOCUMENTS
 async function loadDocuments() {
     try {
         const snap = await db.collection('documents')
@@ -603,7 +614,7 @@ function downloadDoc() {
     a.href = currentViewDoc.fileData;
     a.download = currentViewDoc.name + (currentViewDoc.fileType.includes('pdf') ? '.pdf' : '.jpg');
     a.click();
-    showToast('Download started ✅');
+    alert('Download started ✅');
 }
 
 async function deleteDoc() {
@@ -611,10 +622,10 @@ async function deleteDoc() {
     showLoading();
     try {
         await db.collection('documents').doc(currentViewDoc.id).delete();
-        showToast('Document Deleted ✅'); 
+        alert('Document Deleted ✅'); 
         closeViewer(); 
         await loadDocuments();
-    } catch(e) { showToast('Error: ' + e.message); }
+    } catch(e) { alert('Error: ' + e.message); }
     hideLoading();
 }
 
@@ -623,7 +634,6 @@ function catLabel(c) { return { identity:'🪪 Identity', education:'🎓 Educat
 function catIcon(c) { return { identity:'fa-id-card', education:'fa-graduation-cap', health:'fa-heartbeat', vehicle:'fa-car', financial:'fa-money-bill', other:'fa-file-alt' }[c] || 'fa-file-alt'; }
 function showLoading() { document.getElementById('loading').classList.add('active'); }
 function hideLoading() { document.getElementById('loading').classList.remove('active'); }
-function showToast(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
 </script>
 </body>
 </html>
